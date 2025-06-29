@@ -59,6 +59,16 @@
 // loadCategories();
 // loadVideos();
 
+
+
+function removeActiveClass() {
+    const activeButtons = document.getElementsByClassName("active");
+    // console.log(activeButtons);
+    for (btn of activeButtons) {
+        btn.classList.remove("active");
+    }
+}
+
 function loadCategories() {
     fetch('https://openapi.programming-hero.com/api/phero-tube/categories')
         .then((res) => res.json())
@@ -69,7 +79,11 @@ function loadCategories() {
 function loadVideos() {
     fetch('https://openapi.programming-hero.com/api/phero-tube/videos')
         .then((res) => res.json())
-        .then((data) => displayVideos(data.videos));
+        .then((data) => {
+            removeActiveClass();
+            document.getElementById("btn-all").classList.add("active");
+            displayVideos(data.videos);
+        });
 }
 
 const loadCategoryVideos = (id) => {
@@ -77,13 +91,22 @@ const loadCategoryVideos = (id) => {
     const url = `https://openapi.programming-hero.com/api/phero-tube/category/${id}`;
     // console.log(url);
     fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-        const clickedButton = document.getElementById(`btn-${id}`);
-        clickedButton.classList.add("active");
-        // console.log(clickedButton);
-        displayVideos(data.category)
-    });
+        .then((res) => res.json())
+        .then((data) => {
+            removeActiveClass();
+            const clickedButton = document.getElementById(`btn-${id}`);
+            clickedButton.classList.add("active");
+            // console.log(clickedButton);
+            displayVideos(data.category)
+        });
+}
+
+const loadVideoDetails = (videoId) => {
+    // console.log(videoId);
+    const url = `https://openapi.programming-hero.com/api/phero-tube/video/${videoId}`
+    fetch(url)
+        .then((res) => res.json())
+        .then((data) => displayVideoDetails(data.video));
 }
 
 // {
@@ -125,10 +148,10 @@ function displayCategories(categories) {
 
 const displayVideos = (videos) => {
     const videoContainer = document.getElementById('video-container');
-    
+
     videoContainer.innerHTML = "";
 
-    if(videos.length === 0){
+    if (videos.length === 0) {
         videoContainer.innerHTML = `
         <div class="col-span-full flex flex-col items-center py-25">
             <img class="w-[120px]" src="assets/Icon.png" alt="">
@@ -162,11 +185,29 @@ const displayVideos = (videos) => {
                     <p class="text-sm text-gray-400">${video.others.views} Views</p>
                 </div>
             </div>
+            <button onclick=loadVideoDetails('${video.video_id}') class="btn btn-block">Show Details</button>
         </div>
         `
         videoContainer.appendChild(videoCard);
 
     });
+}
+
+const displayVideoDetails = (video) => {
+    // console.log(video);
+    document.getElementById("video_details").showModal();
+    const detailsContainer = document.getElementById("details-container");
+    detailsContainer.innerHTML = `
+    <div class="card bg-base-100 image-full w-96 shadow-sm">
+        <figure>
+            <img src="${video.thumbnail}" alt=""/>
+        </figure>
+        <div class="card-body">
+            <h2 class="card-title">${video.title}</h2>
+            <p>${video.description}</p>
+        </div>
+    </div>
+    `
 }
 
 loadCategories();
